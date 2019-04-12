@@ -77,3 +77,14 @@ What we're looking for us anything that lets us distinguish between the
 distributions between one index and the next. For a properly-implemented
 constant-time string comparison, every box plot for the given function should
 be completely identical.
+
+## Examples
+
+On my machine, here's the results for Python 2.6.9 with an 8 character password
+and 10000000 data points:
+
+![Boxplots for Python 2.6.9](static/python2.6.9-length8-n10000000.png?raw=true)
+
+And here's Python 3.6.8 with an 8 character password and 10000000 data points:
+
+![Boxplots for Python 3.6.8](static/python3.6.8-length8-n10000000.png?raw=true)
