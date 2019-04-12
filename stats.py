@@ -86,9 +86,13 @@ except ImportError:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--length", "-l", default=16, type=int)
-    parser.add_argument("--out", "-o", default="times.csv")
-    parser.add_argument("--num-values", "-n", default=1000000, type=int)
+    parser.add_argument("--length", "-l", default=16, type=int,
+                        help="The length of the 'password' to test with")
+    parser.add_argument("--out", "-o", default="times.csv",
+                        help="The CSV file to generate. Note that this file "
+                        "will be overwritten if it exists.")
+    parser.add_argument("--num-values", "-n", default=1000000, type=int,
+                        help="The number of data points to generate")
     args = parser.parse_args()
 
     length = args.length
