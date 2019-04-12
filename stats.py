@@ -4,6 +4,8 @@
 import argparse
 import csv
 from hashlib import md5
+import hmac
+import os
 import random
 
 
@@ -67,7 +69,14 @@ def xor_bytes(a, b):
 
 
 def hash_compare(a, b):
-    md5(a.encode("UTF-8")) == md5(b.encode("UTF-8")) and a == b
+    # This function works by preventing the attacker from controlling the
+    # two strings we're comparing
+    # Without a random salt, an attacker could still perform a timing attack
+    # to leak the hash
+    salt = os.urandom(8)
+    return (hmac.new(salt, a.encode("UTF-8")).digest()
+            == hmac.new(salt, b.encode("UTF-8")).digest()
+            and a == b)
 
 
 FUNCTIONS = {
