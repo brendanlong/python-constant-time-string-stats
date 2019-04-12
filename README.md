@@ -80,11 +80,17 @@ be completely identical.
 
 ## Examples
 
-On my machine, here's the results for Python 2.6.9 with a 32-character password
+These are from my desktop, using an isolated core and `PYTHONHASHSEED=1`.
+
+Python 2.6.9 with a 32-character password
 and 56,458,444 data points:
 
 ![Boxplots for Python 2.6.9](static/python2.6.9-length32-n56458444.png?raw=true)
 
-And here's Python 3.6.8 with a 32-character password and 93,229,247 data points:
+Python 3.6.8 with a 32-character password and 93,229,247 data points:
 
 ![Boxplots for Python 3.6.8](static/python3.6.8-length32-n93229247.png?raw=true)
+
+Python 3.7.2 with a 32-character password and 100,000,000 data points:
+
+![Boxplots for Python 3.6.8](static/python3.7.2-length32-n100000000.png?raw=true)
