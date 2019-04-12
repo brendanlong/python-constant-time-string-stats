@@ -85,6 +85,8 @@ except ImportError:
 
 
 def main():
+    function_names = list(FUNCTIONS.keys())
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--length", "-l", default=16, type=int,
                         help="The length of the 'password' to test with")
@@ -93,6 +95,9 @@ def main():
                         "will be overwritten if it exists.")
     parser.add_argument("--num-values", "-n", default=1000000, type=int,
                         help="The number of data points to generate")
+    parser.add_argument("functions",
+                        default=function_names,
+                        nargs="*")
     args = parser.parse_args()
 
     length = args.length
@@ -100,7 +105,7 @@ def main():
     num_values = args.num_values
 
     password = "a" * length
-    possible_functions = list(FUNCTIONS.items())
+    possible_functions = args.functions
     with open(out, "w") as f:
         writer = csv.writer(f)
         writer.writerow(["function", "password length",
@@ -109,7 +114,8 @@ def main():
             if i % 100000 == 0:
                 print("Generated %d/%d values (%d%%)" %
                       (i, num_values, int(i * 100 / num_values)))
-            name, function = random.choice(possible_functions)
+            name = random.choice(possible_functions)
+            function = FUNCTIONS[name]
             first_difference = random.randint(0, length - 1)
             attempt = "".join(["b" if i >= first_difference else "a"
                                for i in range(length)])
