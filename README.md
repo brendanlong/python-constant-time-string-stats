@@ -80,11 +80,11 @@ be completely identical.
 
 ## Examples
 
-On my machine, here's the results for Python 2.6.9 with an 8 character password
-and 10000000 data points:
+On my machine, here's the results for Python 2.6.9 with a 32-character password
+and 56,458,444 data points:
 
-![Boxplots for Python 2.6.9](static/python2.6.9-length8-n10000000.png?raw=true)
+![Boxplots for Python 2.6.9](static/python2.6.9-length32-n56458444.png?raw=true)
 
-And here's Python 3.6.8 with an 8 character password and 10000000 data points:
+And here's Python 3.6.8 with a 32-character password and 93,229,247 data points:
 
-![Boxplots for Python 3.6.8](static/python3.6.8-length8-n10000000.png?raw=true)
+![Boxplots for Python 3.6.8](static/python3.6.8-length32-n93229247.png?raw=true)
