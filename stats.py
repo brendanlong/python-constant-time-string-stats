@@ -4,9 +4,42 @@
 import argparse
 import csv
 from hashlib import md5
-from hmac import compare_digest
 import random
-import time
+
+
+try:
+    from time import perf_counter
+except ImportError:
+    # perfcounter backport from https://gist.github.com/zed/5073409
+    import ctypes
+    import errno
+    from ctypes.util import find_library
+
+    CLOCK_MONOTONIC_RAW = 4
+
+    clockid_t = ctypes.c_int
+    time_t = ctypes.c_long
+
+    class timespec(ctypes.Structure):
+        _fields_ = [
+            ('tv_sec', time_t),         # seconds
+            ('tv_nsec', ctypes.c_long)  # nanoseconds
+        ]
+
+    _clock_gettime = (ctypes.CDLL(find_library('rt'), use_errno=True)
+                      .clock_gettime)
+    _clock_gettime.argtypes = [clockid_t, ctypes.POINTER(timespec)]
+
+    def perf_counter():
+        tp = timespec()
+        if _clock_gettime(CLOCK_MONOTONIC_RAW, ctypes.byref(tp)) < 0:
+            err = ctypes.get_errno()
+            msg = errno.errorcode[err]
+            if err == errno.EINVAL:
+                msg += (" The clk_id specified is not supported on this system"
+                        " clk_id=%r") % (CLOCK_MONOTONIC_RAW,)
+            raise OSError(err, msg)
+        return tp.tv_sec + tp.tv_nsec * 1e-9
 
 
 def equals_operator(a, b):
@@ -38,12 +71,17 @@ def hash_compare(a, b):
 
 
 FUNCTIONS = {
-    "compare_digest": compare_digest,
     "equals_operator": equals_operator,
     "andeq": andeq,
     "xor_bytes": xor_bytes,
     "hash_compare": hash_compare
 }
+
+try:
+    from hmac import compare_digest
+    FUNCTIONS["compare_digest"] = compare_digest
+except ImportError:
+    pass
 
 
 def main():
@@ -66,7 +104,7 @@ def main():
         for i in range(1, num_values + 1):
             if i % 100000 == 0:
                 print("Generated %d/%d values (%d%%)" %
-                      (i, num_values, i // num_values * 100))
+                      (i, num_values, int(i * 100 / num_values)))
             name, function = random.choice(possible_functions)
             first_difference = random.randint(0, length - 1)
             attempt = "".join(["b" if i >= first_difference else "a"
@@ -75,9 +113,9 @@ def main():
                     and password != attempt
                     and password[:first_difference]
                     == attempt[:first_difference])
-            t0 = time.perf_counter()
+            t0 = perf_counter()
             function(password, attempt)
-            t1 = time.perf_counter()
+            t1 = perf_counter()
             elapsed = t1 - t0
             row = [name, length, first_difference, elapsed]
             writer.writerow(row)
