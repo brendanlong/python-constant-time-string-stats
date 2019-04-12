@@ -9,6 +9,13 @@ import os
 import random
 
 
+# Use xrange in Python 2 and range in Python 3
+try:
+    range = xrange
+except:
+    pass
+
+
 try:
     from time import perf_counter
 except ImportError:
