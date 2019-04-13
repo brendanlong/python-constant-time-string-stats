@@ -132,14 +132,20 @@ def main():
                         "will be overwritten if it exists.")
     parser.add_argument("--num-values", "-n", default=1000000, type=int,
                         help="The number of data points to generate")
+    parser.add_argument("--warmups", "-w", type=int, default=1)
+    parser.add_argument("--loops", type=int, default=10,
+                        help="The number of loops to run for each password "
+                        "test")
     parser.add_argument("functions",
                         default=function_names,
                         nargs="*")
     args = parser.parse_args()
 
     length = args.length
+    loops = args.loops
     out = args.out
     num_values = args.num_values
+    warmups = args.warmups
 
     possible_functions = args.functions
     with open(out, "w") as f:
@@ -147,7 +153,7 @@ def main():
         writer.writerow(["function", "password length",
                          "first difference", "time"])
         for i in range(1, num_values + 1):
-            if i % 100000 == 0:
+            if i % 1000 == 0:
                 print("Generated %d/%d values (%d%%)" %
                       (i, num_values, int(i * 100 / num_values)))
 
@@ -167,10 +173,13 @@ def main():
                     and a[:first_difference]
                     == b[:first_difference]
                     and a[first_difference] != b[first_difference])
+            for _ in range(warmups):
+                function(a, b)
             t0 = perf_counter()
-            function(a, b)
+            for _ in range(loops):
+                function(a, b)
             t1 = perf_counter()
-            elapsed = t1 - t0
+            elapsed = (t1 - t0) / loops
             row = [name, length, first_difference, elapsed]
             writer.writerow(row)
 
