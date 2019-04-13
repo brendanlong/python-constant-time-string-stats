@@ -133,9 +133,10 @@ def main():
     parser.add_argument("--num-values", "-n", default=1000000, type=int,
                         help="The number of data points to generate")
     parser.add_argument("--warmups", "-w", type=int, default=1)
-    parser.add_argument("--loops", type=int, default=10,
+    parser.add_argument("--loops", type=int,
                         help="The number of loops to run for each password "
                         "test")
+    parser.add_argument("--min-time", type=float, default=0.01)
     parser.add_argument("functions",
                         default=function_names,
                         nargs="*")
@@ -144,10 +145,32 @@ def main():
     length = args.length
     loops = args.loops
     out = args.out
+    min_time = args.min_time
     num_values = args.num_values
     warmups = args.warmups
-
     possible_functions = args.functions
+
+    loops_config = {}
+    for name in possible_functions:
+        if loops is not None:
+            loops_config[name] = loops
+        else:
+            function = FUNCTIONS[name]
+            tmp = random_string(length)
+            for _ in range(warmups):
+                function(tmp, tmp)
+            potential_loops = 1
+            while True:
+                t0 = perf_counter()
+                for _ in range(potential_loops):
+                    function(tmp, tmp)
+                t1 = perf_counter()
+                if t1 - t0 >= min_time:
+                    break
+                potential_loops *= 2
+            loops_config[name] = potential_loops
+        print("Configured loops for %s: %s" % (name, loops_config[name]))
+
     with open(out, "w") as f:
         writer = csv.writer(f)
         writer.writerow(["function", "password length",
@@ -159,6 +182,7 @@ def main():
 
             name = random.choice(possible_functions)
             function = FUNCTIONS[name]
+            loops = loops_config[name]
             a = random_string(length)
             first_difference = random.randint(0, length - 1)
             b = a[:first_difference] + random_string(length - first_difference)
