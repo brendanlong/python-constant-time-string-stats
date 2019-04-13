@@ -80,17 +80,27 @@ be completely identical.
 
 ## Examples
 
-These are from my desktop, using an isolated core and `PYTHONHASHSEED=1`.
+These are from my desktop, using 16-character passwords, 16,000 data
+points per function, and some system settings to reduce noise:
 
-Python 2.6.9 with a 32-character password
-and 56,458,444 data points:
+- Booted with `isocpus=2,3 rcu_nocbs=2,3 processor_max_cstate=1 idle=poll`
+- Ran `python3 -m perf system tune`
+- Turned off address space randomization with `echo 0 > /proc/sys/kernel/randomize_va_space`
+- Ran the actual stats collection using taskset to run tasks on a single
+  isolated CPU.
+- Used auto-loop calculation and 10 warmups.
+- Set `PYTHONHASHSEED=1` mainly for reproducability
 
-![Boxplots for Python 2.6.9](static/python2.6.9-length32-n56458444.png?raw=true)
+Example:
 
-Python 3.6.8 with a 32-character password and 93,229,247 data points:
+```bash
+PYTHONHASHSEED=1 taskset -a -c 2 python2.6 ./stats.py -n 16000 -l 16 -o py26.csv
+```
 
-![Boxplots for Python 3.6.8](static/python3.6.8-length32-n93229247.png?raw=true)
+Python 2.6.9:
 
-Python 3.7.2 with a 32-character password and 100,000,000 data points:
+![Boxplots for Python 2.6.9](static/python2.6.9.png?raw=true)
 
-![Boxplots for Python 3.6.8](static/python3.7.2-length32-n100000000.png?raw=true)
+Python 3.6.8:
+
+![Boxplots for Python 3.6.8](static/python3.6.8.png?raw=true)
