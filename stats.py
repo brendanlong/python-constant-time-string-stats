@@ -131,12 +131,16 @@ def main():
                         help="The CSV file to generate. Note that this file "
                         "will be overwritten if it exists.")
     parser.add_argument("--num-values", "-n", default=1000000, type=int,
-                        help="The number of data points to generate")
-    parser.add_argument("--warmups", "-w", type=int, default=1)
+                        help="The number of data points to generate per "
+                        "function")
+    parser.add_argument("--warmups", "-w", type=int, default=10)
     parser.add_argument("--loops", type=int,
                         help="The number of loops to run for each password "
                         "test")
-    parser.add_argument("--min-time", type=float, default=0.01)
+    parser.add_argument("--min-time", type=float, default=0.1)
+    parser.add_argument("--print-every", type=int, default=100,
+                        help="How often to print status info (default: every "
+                        "1000 values generated)")
     parser.add_argument("functions",
                         default=function_names,
                         nargs="*")
@@ -149,6 +153,7 @@ def main():
     num_values = args.num_values
     warmups = args.warmups
     possible_functions = args.functions
+    print_every = args.print_every
 
     loops_config = {}
     for name in possible_functions:
@@ -171,41 +176,47 @@ def main():
             loops_config[name] = potential_loops
         print("Configured loops for %s: %s" % (name, loops_config[name]))
 
+    print("With %d values per function and password length %d, we will "
+          "generate approximately %d values per index"
+          % (num_values, length, num_values // length))
     with open(out, "w") as f:
         writer = csv.writer(f)
         writer.writerow(["function", "password length",
                          "first difference", "time"])
-        for i in range(1, num_values + 1):
-            if i % 1000 == 0:
-                print("Generated %d/%d values (%d%%)" %
-                      (i, num_values, int(i * 100 / num_values)))
-
-            name = random.choice(possible_functions)
+        for name in sorted(possible_functions):
+            print("Benchmarking %s" % name)
             function = FUNCTIONS[name]
             loops = loops_config[name]
-            a = random_string(length)
-            first_difference = random.randint(0, length - 1)
-            b = a[:first_difference] + random_string(length - first_difference)
-            while b[first_difference] == a[first_difference]:
-                b = "".join([
-                    random.choice(string.ascii_letters)
-                    if i == first_difference
-                    else c
-                    for i, c in enumerate(b)])
-            assert (len(a) == len(b)
-                    and a != b
-                    and a[:first_difference]
-                    == b[:first_difference]
-                    and a[first_difference] != b[first_difference])
-            for _ in range(warmups):
-                function(a, b)
-            t0 = perf_counter()
-            for _ in range(loops):
-                function(a, b)
-            t1 = perf_counter()
-            elapsed = (t1 - t0) / loops
-            row = [name, length, first_difference, elapsed]
-            writer.writerow(row)
+            for i in range(1, num_values + 1):
+                if i % print_every == 0:
+                    print("Generated %d/%d values (%d%%)" %
+                          (i, num_values, int((i * 100) // num_values)))
+                first_difference = random.randint(0, length - 1)
+                j = i + (first_difference * length)
+
+                a = random_string(length)
+                b = (a[:first_difference] +
+                     random_string(length - first_difference))
+                while b[first_difference] == a[first_difference]:
+                    b = "".join([
+                        random.choice(string.ascii_letters)
+                        if i == first_difference
+                        else c
+                        for i, c in enumerate(b)])
+                assert (len(a) == len(b)
+                        and a != b
+                        and a[:first_difference]
+                        == b[:first_difference]
+                        and a[first_difference] != b[first_difference])
+                for _ in range(warmups):
+                    function(a, b)
+                t0 = perf_counter()
+                for _ in range(loops):
+                    function(a, b)
+                t1 = perf_counter()
+                elapsed = (t1 - t0) / loops
+                row = [name, length, first_difference, elapsed]
+                writer.writerow(row)
 
 
 if __name__ == "__main__":
