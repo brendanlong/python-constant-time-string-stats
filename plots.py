@@ -9,12 +9,17 @@ import seaborn
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")
+    parser.add_argument("--max-rows", help="The maximum number of rows to "
+                        "read from the CSV. This can be useful during testing "
+                        "or if you run out of memory",
+                        type=int)
     args = parser.parse_args()
 
     df = pandas.read_csv(
         args.filename,
         header=0,
-        usecols=["function", "first difference", "time"]
+        usecols=["function", "first difference", "time"],
+        nrows=args.max_rows
     )
     df.time *= 1000000
 
