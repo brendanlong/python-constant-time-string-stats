@@ -7,6 +7,7 @@ from hashlib import md5  # noqa
 import hmac
 import os
 import random
+import string
 
 
 # Use xrange in Python 2 and range in Python 3
@@ -51,6 +52,12 @@ except ImportError:
                         " clk_id=%r") % (CLOCK_MONOTONIC_RAW,)
             raise OSError(err, msg)
         return tp.tv_sec + tp.tv_nsec * 1e-9
+
+
+def random_string(length):
+    # type: (int) -> str
+    return "".join([random.choice(string.ascii_letters)
+                    for _ in range(length)])
 
 
 def equals_operator(a, b):
@@ -127,7 +134,6 @@ def main():
     out = args.out
     num_values = args.num_values
 
-    password = "a" * length
     possible_functions = args.functions
     with open(out, "w") as f:
         writer = csv.writer(f)
@@ -137,17 +143,25 @@ def main():
             if i % 100000 == 0:
                 print("Generated %d/%d values (%d%%)" %
                       (i, num_values, int(i * 100 / num_values)))
+
             name = random.choice(possible_functions)
             function = FUNCTIONS[name]
+            a = random_string(length)
             first_difference = random.randint(0, length - 1)
-            attempt = "".join(["b" if i >= first_difference else "a"
-                               for i in range(length)])
-            assert (len(password) == len(attempt)
-                    and password != attempt
-                    and password[:first_difference]
-                    == attempt[:first_difference])
+            b = a[:first_difference] + random_string(length - first_difference)
+            while b[first_difference] == a[first_difference]:
+                b = "".join([
+                    random.choice(string.ascii_letters)
+                    if i == first_difference
+                    else c
+                    for i, c in enumerate(b)])
+            assert (len(a) == len(b)
+                    and a != b
+                    and a[:first_difference]
+                    == b[:first_difference]
+                    and a[first_difference] != b[first_difference])
             t0 = perf_counter()
-            function(password, attempt)
+            function(a, b)
             t1 = perf_counter()
             elapsed = t1 - t0
             row = [name, length, first_difference, elapsed]
