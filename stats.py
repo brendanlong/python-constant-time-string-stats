@@ -3,7 +3,7 @@
 # https://securitypitfalls.wordpress.com/2018/08/03/constant-time-compare-in-python/
 import argparse
 import csv
-from hashlib import md5
+from hashlib import md5  # noqa
 import hmac
 import os
 import random
@@ -11,8 +11,8 @@ import random
 
 # Use xrange in Python 2 and range in Python 3
 try:
-    range = xrange
-except:
+    range = xrange  # type: ignore
+except NameError:
     pass
 
 
@@ -35,11 +35,13 @@ except ImportError:
             ('tv_nsec', ctypes.c_long)  # nanoseconds
         ]
 
-    _clock_gettime = (ctypes.CDLL(find_library('rt'), use_errno=True)
-                      .clock_gettime)
+    _clock_gettime = (
+        ctypes.CDLL(find_library('rt'), use_errno=True)  # type: ignore
+        .clock_gettime)
     _clock_gettime.argtypes = [clockid_t, ctypes.POINTER(timespec)]
 
     def perf_counter():
+        # type: () -> float
         tp = timespec()
         if _clock_gettime(CLOCK_MONOTONIC_RAW, ctypes.byref(tp)) < 0:
             err = ctypes.get_errno()
@@ -52,10 +54,12 @@ except ImportError:
 
 
 def equals_operator(a, b):
-    a == b
+    # type: (str, str) -> bool
+    return a == b
 
 
 def andeq(a, b):
+    # type: (str, str) -> bool
     if len(a) != len(b):
         return False
 
@@ -66,6 +70,7 @@ def andeq(a, b):
 
 
 def xor_bytes(a, b):
+    # type: (str, str) -> bool
     if len(a) != len(b):
         return False
 
@@ -76,6 +81,7 @@ def xor_bytes(a, b):
 
 
 def hash_compare(a, b):
+    # type: (str, str) -> bool
     # This function works by preventing the attacker from controlling the
     # two strings we're comparing
     # Without a random salt, an attacker could still perform a timing attack
@@ -101,6 +107,7 @@ except ImportError:
 
 
 def main():
+    # type: () -> None
     function_names = list(FUNCTIONS.keys())
 
     parser = argparse.ArgumentParser()
