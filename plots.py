@@ -37,6 +37,7 @@ def main():
         y="time",
         col="function",
         col_wrap=3,
+        col_order=sorted(df.function.unique()),
         sharey=False,
         showfliers=False)
     g.set_axis_labels("Index of first difference", "Time (μs)")
