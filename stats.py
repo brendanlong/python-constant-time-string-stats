@@ -127,6 +127,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--length", "-l", default=16, type=int,
                         help="The length of the 'password' to test with")
+    parser.add_argument("--max-difference-index", type=int,
+                        help="The maximum index to generate differences in")
     parser.add_argument("--out", "-o", default="times.csv",
                         help="The CSV file to generate. Note that this file "
                         "will be overwritten if it exists.")
@@ -149,6 +151,11 @@ def main():
     length = args.length
     loops = args.loops
     out = args.out
+    max_difference_index = args.max_difference_index
+    if args.max_difference_index is None:
+        max_difference_index = length - 1
+    if max_difference_index >= length:
+        raise ValueError("--max-differences-index must be < --length")
     min_time = args.min_time
     num_values = args.num_values
     warmups = args.warmups
@@ -176,9 +183,10 @@ def main():
             loops_config[name] = potential_loops
         print("Configured loops for %s: %s" % (name, loops_config[name]))
 
-    print("With %d values per function and password length %d, we will "
+    print("With %d values per function and max difference index %d, we will "
           "generate approximately %d values per index"
-          % (num_values, length, num_values // length))
+          % (num_values, max_difference_index,
+             num_values // max_difference_index))
     with open(out, "w") as f:
         writer = csv.writer(f)
         writer.writerow(["function", "password length",
@@ -191,9 +199,7 @@ def main():
                 if i % print_every == 0:
                     print("Generated %d/%d values (%d%%)" %
                           (i, num_values, int((i * 100) // num_values)))
-                first_difference = random.randint(0, length - 1)
-                j = i + (first_difference * length)
-
+                first_difference = random.randint(0, max_difference_index)
                 a = random_string(length)
                 b = (a[:first_difference] +
                      random_string(length - first_difference))
