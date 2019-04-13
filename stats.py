@@ -89,6 +89,12 @@ def xor_bytes(a, b):
 
 def hash_compare(a, b):
     # type: (str, str) -> bool
+    return (md5(a.encode("UTF-8")) == md5(b.encode("UTF-8"))
+            and a == b)
+
+
+def salted_hash_compare(a, b):
+    # type: (str, str) -> bool
     # This function works by preventing the attacker from controlling the
     # two strings we're comparing
     # Without a random salt, an attacker could still perform a timing attack
@@ -103,7 +109,8 @@ FUNCTIONS = {
     "equals_operator": equals_operator,
     "andeq": andeq,
     "xor_bytes": xor_bytes,
-    "hash_compare": hash_compare
+    "hash_compare": hash_compare,
+    "salted_hash_compare": salted_hash_compare
 }
 
 try:
